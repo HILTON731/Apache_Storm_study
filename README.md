@@ -27,7 +27,7 @@ Kill/Undeploy할때까지 계속 동작한다는 차이점이 있음
 Tuple을 내보내는 일
 
 ### Bolt
-- 실시간 연산의 연산자/ㅎ마수
+- 실시간 연산의 연산자 함수
 - 다수의 Stream을 입력받아 Data를 처리하고 선택적으로 하나 이상의 Stream으로 내보냄
 
 ## 개발환경 구축(MAVEN)
@@ -47,7 +47,8 @@ pom.xml에 해당 Tag 삽입
 - Worker(워커, JVM): Node에서 동작하는 독립적인 JVM 프로세스
 - Executer(스레드): Worker JVM 프로세스에서 동작하는 JAVA 스레드
 - Task(작업단위, Bolt/Spout instance): Spout/Bolt instance
-![storm_img](C:\Users\tony9\IdeaProjects\Apache Storm\img\storm_img.png)
+
+![storm_img](.\img\storm_img.png)
 
 ## Topology에 Worker 추가
 ```java
