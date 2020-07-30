@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="66bf57da-64c5-434a-ad1f-c94638cc8787" name="storm" url="http://storm.test">
+        <fileTransfer rootFolder="/home/jheu" accessType="SFTP" host="114.70.235.43" port="10201" sshConfigId="96aafeb2-9f28-4a3d-ae0e-e9183c7f5904" sshConfig="storm">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
