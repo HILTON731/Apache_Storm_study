@@ -48,7 +48,7 @@ pom.xml에 해당 Tag 삽입
 - Executer(스레드): Worker JVM 프로세스에서 동작하는 JAVA 스레드
 - Task(작업단위, Bolt/Spout instance): Spout/Bolt instance
 
-![storm_img](.\img\storm_img.png)
+![storm_img](./img/storm_img.png)
 
 ## Topology에 Worker 추가
 ```java
