@@ -1,6 +1,7 @@
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Fields;
 
 import static java.lang.Thread.sleep;
 
@@ -23,8 +24,8 @@ public class WordCountTopology {
 
         builder.setSpout(SENTENCE_SPOUT_ID, spout);
         builder.setBolt(SPLIT_BOLT_ID, splitBolt).shuffleGrouping(SENTENCE_SPOUT_ID);
-//        builder.setBolt(COUNT_BOLT_ID, countBolt).fieldsGrouping(SPLIT_BOLT_ID, new Fields("word"));
-        builder.setBolt(COUNT_BOLT_ID, countBolt, 4).shuffleGrouping(SPLIT_BOLT_ID); // countBolt는 단어가 발생한 수를 내부에 보관하기때문에 Shuffle.G를 실행하면 집계결과가 틀림
+        builder.setBolt(COUNT_BOLT_ID, countBolt).fieldsGrouping(SPLIT_BOLT_ID, new Fields("word"));
+//        builder.setBolt(COUNT_BOLT_ID, countBolt, 4).shuffleGrouping(SPLIT_BOLT_ID); // countBolt는 단어가 발생한 수를 내부에 보관하기때문에 Shuffle.G를 실행하면 집계결과가 틀림
         builder.setBolt(REPORT_BOLT_ID, reportBolt).globalGrouping(COUNT_BOLT_ID);
 
         Config config = new Config();

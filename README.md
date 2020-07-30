@@ -97,3 +97,55 @@ Topology를 구성하는 것의 일부
         - int taskId: 송신자 Task ID
         - List\<Object> values: Tuple
         - return: Message를 전송할 수신자 Tasks
+        
+## 처리 보장
+
+### Spout reliability
+Spout가 보낸 Tuple 또는 Child Tuple이 Bolt에서 처리에 실패했을 때 해당 Tuple을 다시 보낼 수 있어야 함
+<br> Child Tuple: Spout에서 내보낸 Tuple을 처리한 결과로 발생한 Tuple
+
+![result_graph](./img/result_graph.png)
+<결과 그래프>
+<br>결과 그래프는 Tuple Tree로 보여짐
+- 처리 보장을 위해 Tree의 각 Bolt는 Tuple에 대한 확인 메시지(acknowledge(ack) message)나
+ 실패 메시지(fail message)를 보낼 수 있음
+    - Ack Message: Tree 내의 모든 Bolt가 Original Tuple에서 파생된 Tuple에 대한 확인 메시지를 보내면 호출
+    - Fail Message: Tree 내 Bolt 중 하나라도 Tuple을 처리하지 못하거나 허용된 시간을 초과할 경우 호출
+```java
+import org.apache.storm.spout.SpoutOutputCollector;
+import org.apache.storm.task.TopologyContext;
+
+public interface ISpout extends Serializable {
+    void open(Map conf, TopologyContext context, SpoutOutputCollector collector);
+    void close();
+    void nextTuple();
+    void ack(Object msgId);
+    void fail(Object msgId);
+}
+```
+- nextTuple()을 호출하여 Spout에게 Tuple을 내보내라고 요청
+- 내보내는 Tuple에게 고유 아이디를 부여하고 SpoutOutputCollector의 emit() method에게 아이디 전달
+```java
+collector.emit(new Values("value1", "value2"), msgId);
+```
+
+### Bolt reliability
+
+1. 파생된 Tuple을 내보내기 전 원본 Tuple에 연결
+2. Bolt가 받은 Tuple에 대해 메시지를 보냄
+
+Tuple을 연결: Bolt가 받은 Tuple과 Bolt에서 파생된 튜플을 연결하여 하위 Bolt들의 확인/실패 메시지를 확인
+```java
+collector.emit(tuple, new Values(word));
+```
+Tuple을 연결하지 않을 경우: 신뢰성 있는 Stream에 포함되지 않음
+<br>하위 Stream에서 처리를 실패할 경우 원본 Tuple은 다시 생성되지 않음
+
+Tuple을 처리하고 받은 Tuple에 대해 확인 혹은 실패를 명시적으로 알려야 함
+```java
+// SUCESS
+this.collector.ack(tuple);
+
+// FAIL
+this.collector.fail(tuple);
+```

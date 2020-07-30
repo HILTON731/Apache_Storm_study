@@ -6,10 +6,13 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.Thread.sleep;
 
 public class SentenceSpout extends BaseRichSpout { // ISpout, IComponent 인터페이스를 구현한 편의 클래스
+    private ConcurrentHashMap<UUID, Values> pending;// 신뢰성을 위해 추가한 부분
     private SpoutOutputCollector collector;
     private String[] sentences = {
             "my dog has fleas",
@@ -26,9 +29,15 @@ public class SentenceSpout extends BaseRichSpout { // ISpout, IComponent 인터�
     
     public void open(Map config, TopologyContext context, SpoutOutputCollector collector){ // Spout 컴포넌트가 초기화될 때 호출, 스톰 설정 정보를 가진 Map, 토폴로지에 속한 컴포넌트들의 정보를 가진 TopologyContext 객체, 튜플을 내보낼때 사용하는 메소드를 제공하는 SpoutOutputCollector
         this.collector = collector;
+        this.pending = new ConcurrentHashMap<UUID, Values>(); // 미확인 Tuple을 저장하기 위한 HashMap
     }
     public void nextTuple(){ // Spuout 구현체의 핵심 메소드, OutputCollector를 이용해 튜플을 내보내라고 Spout에게 요청
-        this.collector.emit(new Values(sentences[index]));
+//        this.collector.emit(new Values(sentences[index]));
+        Values values = new Values(sentences[index]);
+        UUID msgId = UUID.randomUUID();
+        this.pending.put(msgId, values);
+        this.collector.emit(values, msgId);
+        //신뢰성
         index++;
         if(index >= sentences.length){
             index=0;
@@ -38,5 +47,12 @@ public class SentenceSpout extends BaseRichSpout { // ISpout, IComponent 인터�
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+    public void ack (Object msgId) { // 신뢰성
+        this.pending.remove(msgId);
+    }
+
+    public void fail (Object msgId) { // 신뢰성
+        this.collector.emit(this.pending.get(msgId), msgId);
     }
 }
